@@ -1,0 +1,326 @@
+// ============================================================================
+// EduKid — Schéma Prisma
+// MVP : Français + Mathématiques, niveau CE1, structure prête pour toutes
+// les matières (Français/Maths/Arabe/Anglais) et tous les niveaux (CP→CM2).
+// ============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ----------------------------------------------------------------------------
+// ENUMS
+// ----------------------------------------------------------------------------
+
+enum Role {
+  ADMIN
+  PARENT
+}
+
+enum Level {
+  CP
+  CE1
+  CE2
+  CM1
+  CM2
+}
+
+enum SubjectCode {
+  FRANCAIS
+  MATHS
+  ARABE
+  ANGLAIS
+}
+
+enum ActivityType {
+  COURS
+  QUIZ
+  EVALUATION
+}
+
+// ----------------------------------------------------------------------------
+// UTILISATEURS
+// ----------------------------------------------------------------------------
+
+// Compte Admin ou Parent (authentification NextAuth email + mot de passe)
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String
+  name          String
+  role          Role
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Un Admin crée des comptes Parent (traçabilité, optionnel)
+  createdBy     User?     @relation("AdminCreatesParent", fields: [createdById], references: [id])
+  createdById   String?
+  createdUsers  User[]    @relation("AdminCreatesParent")
+
+  children      Child[]   @relation("ParentChildren")
+
+  @@index([role])
+}
+
+// Enfant rattaché à un compte Parent. Pas de mot de passe complexe : PIN à 4 chiffres optionnel.
+model Child {
+  id            String    @id @default(cuid())
+  firstName     String
+  level         Level
+  avatarUrl     String?
+  pinHash       String?   // PIN à 4 chiffres, hashé, optionnel
+
+  parent        User      @relation("ParentChildren", fields: [parentId], references: [id], onDelete: Cascade)
+  parentId      String
+
+  results       Result[]
+  childBadges   ChildBadge[]
+  homeworkRequests HomeworkRequest[]
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([parentId])
+}
+
+// ----------------------------------------------------------------------------
+// CONTENU PÉDAGOGIQUE
+// ----------------------------------------------------------------------------
+
+model Subject {
+  id        String       @id @default(cuid())
+  code      SubjectCode  @unique
+  name      String       // ex. "Français"
+
+  courses      Course[]
+  quizzes      Quiz[]
+  evaluations  Evaluation[]
+  referenceBooks ReferenceBook[]
+}
+
+// --- Apprentissage : Cours (lu à voix haute) + Exercices de pratique --------
+
+model Course {
+  id          String   @id @default(cuid())
+  title       String
+  level       Level
+  content     String   @db.Text   // texte lu par la synthèse vocale (fr-FR)
+  audioUrl    String?             // audio pré-généré optionnel (sinon Web Speech API)
+  order       Int      @default(0)
+
+  subject     Subject  @relation(fields: [subjectId], references: [id])
+  subjectId   String
+
+  exercises   Exercise[]
+  results     Result[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([subjectId, level])
+}
+
+// Exercice de PRATIQUE (module Apprentissage uniquement).
+// -> Autorisé à exposer la correction complète après une erreur.
+model Exercise {
+  id          String   @id @default(cuid())
+  question    String   @db.Text
+  choices     Json?    // ex. QCM: ["8", "9", "10", "12"]
+  answer      String   @db.Text   // réponse correcte
+  hint        String?  @db.Text  // indication facultative avant la correction
+  explanation String   @db.Text  // correction expliquée (autorisée ici seulement)
+  order       Int      @default(0)
+
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId    String
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([courseId])
+}
+
+// --- Quiz : jamais la réponse, uniquement un hint ---------------------------
+
+model Quiz {
+  id          String   @id @default(cuid())
+  title       String
+  level       Level
+
+  subject     Subject  @relation(fields: [subjectId], references: [id])
+  subjectId   String
+
+  questions   QuizQuestion[]
+  results     Result[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([subjectId, level])
+}
+
+// IMPORTANT (règle métier) : "answer" ne doit JAMAIS être sérialisé vers le
+// client, ni avant ni après une réponse de l'enfant. Seul "hint" peut l'être
+// en cas d'erreur. La vérification de la réponse se fait côté serveur
+// (API route), voir contrat d'API dans lib/quiz-service.ts.
+model QuizQuestion {
+  id        String   @id @default(cuid())
+  question  String   @db.Text
+  choices   Json?    // ex. QCM
+  answer    String   @db.Text   // NE JAMAIS exposer côté client
+  hint      String?  @db.Text  // seule info renvoyée en cas d'erreur
+  order     Int      @default(0)
+
+  quiz      Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  quizId    String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([quizId])
+}
+
+// --- Évaluation : comme Quiz (hint seulement) + skillTag pour le bilan ------
+
+model Evaluation {
+  id          String   @id @default(cuid())
+  title       String
+  level       Level
+
+  subject     Subject  @relation(fields: [subjectId], references: [id])
+  subjectId   String
+
+  questions   EvaluationQuestion[]
+  results     Result[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([subjectId, level])
+}
+
+// IMPORTANT (règle métier) : mêmes contraintes que QuizQuestion : "answer"
+// jamais exposée au client. "skillTag" sert à calculer les axes
+// d'amélioration de l'enfant dans son bilan (compétences ratées).
+model EvaluationQuestion {
+  id          String   @id @default(cuid())
+  question    String   @db.Text
+  choices     Json?
+  answer      String   @db.Text   // NE JAMAIS exposer côté client
+  hint        String?  @db.Text
+  skillTag    String              // ex. "conjugaison-present", "addition-retenue"
+  order       Int      @default(0)
+
+  evaluation  Evaluation @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  evaluationId String
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([evaluationId])
+  @@index([skillTag])
+}
+
+// ----------------------------------------------------------------------------
+// RÉSULTATS / BILAN
+// ----------------------------------------------------------------------------
+
+// Résultat d'une activité (Cours+Pratique, Quiz ou Évaluation) pour un enfant.
+// improvementAreas ne concerne en pratique que les évaluations (skillTags ratés).
+model Result {
+  id                String       @id @default(cuid())
+  activityType      ActivityType
+
+  child             Child        @relation(fields: [childId], references: [id], onDelete: Cascade)
+  childId           String
+
+  course            Course?      @relation(fields: [courseId], references: [id])
+  courseId          String?
+
+  quiz              Quiz?        @relation(fields: [quizId], references: [id])
+  quizId            String?
+
+  evaluation        Evaluation?  @relation(fields: [evaluationId], references: [id])
+  evaluationId      String?
+
+  score             Float        // pourcentage 0-100
+  totalQuestions    Int
+  correctAnswers    Int
+  improvementAreas  Json?        // ex. ["conjugaison-present", "addition-retenue"]
+
+  completedAt       DateTime     @default(now())
+
+  @@index([childId, activityType])
+  @@index([childId, courseId])
+  @@index([childId, quizId])
+  @@index([childId, evaluationId])
+}
+
+// ----------------------------------------------------------------------------
+// BADGES
+// ----------------------------------------------------------------------------
+
+model Badge {
+  id          String   @id @default(cuid())
+  code        String   @unique   // ex. "FIRST_COURSE", "QUIZ_MASTER_80"
+  label       String              // ex. "Premier cours terminé"
+  description String   @db.Text
+  iconUrl     String?
+
+  childBadges ChildBadge[]
+}
+
+model ChildBadge {
+  id         String   @id @default(cuid())
+  child      Child    @relation(fields: [childId], references: [id], onDelete: Cascade)
+  childId    String
+  badge      Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  badgeId    String
+  earnedAt   DateTime @default(now())
+
+  @@unique([childId, badgeId])
+  @@index([childId])
+}
+
+// ----------------------------------------------------------------------------
+// DEVOIRS ASSISTÉS
+// ----------------------------------------------------------------------------
+
+// Manuel scolaire de référence, géré par l'Admin, associé à un niveau/matière.
+model ReferenceBook {
+  id          String      @id @default(cuid())
+  title       String
+  level       Level
+  subject     Subject     @relation(fields: [subjectId], references: [id])
+  subjectId   String
+  fileUrl     String?     // PDF ou autre support importé par l'admin
+  notes       String?     @db.Text
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([subjectId, level])
+}
+
+// Devoir saisi par l'enfant/parent : énoncé libre -> détection matière/niveau
+// -> génération d'exercices d'entraînement similaires (MVP : génération simple,
+// sans IA générative, basée sur des templates + banque d'exercices existante).
+model HomeworkRequest {
+  id             String       @id @default(cuid())
+  rawStatement   String       @db.Text  // énoncé saisi tel quel
+  detectedLevel  Level?
+  detectedSubjectCode SubjectCode?
+  generatedExercises Json?    // exercices générés (question/choices/answer/hint)
+
+  child          Child        @relation(fields: [childId], references: [id], onDelete: Cascade)
+  childId        String
+
+  createdAt      DateTime     @default(now())
+
+  @@index([childId])
+}
