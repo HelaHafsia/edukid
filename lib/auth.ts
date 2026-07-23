@@ -114,3 +114,18 @@ export async function requireOwnChild(childId: string) {
 
   return { session, child };
 }
+
+// Variante pour les routes API (Route Handlers) : ne redirige jamais (ça
+// casserait une réponse JSON), renvoie null si non autorisé à la place.
+export async function requireOwnChildApi(childId: string) {
+  const session = await getServerSession(authOptions);
+  if (!session || (session.user as any).role !== "PARENT") return null;
+
+  const parentId = (session.user as any).id as string;
+  const child = await prisma.child.findFirst({
+    where: { id: childId, parentId },
+  });
+
+  if (!child) return null;
+  return { session, child };
+}
