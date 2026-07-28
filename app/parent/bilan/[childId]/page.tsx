@@ -38,10 +38,11 @@ export default async function ChildBilanPage({
   const byType = { COURS: [] as typeof child.results, QUIZ: [] as typeof child.results, EVALUATION: [] as typeof child.results };
   for (const r of child.results) byType[r.activityType].push(r);
 
-  function avg(arr: typeof child.results) {
+  const results = child.results; // extrait ici pour que TS applique le rétrécissement de type correctement
+  const avg = (arr: typeof results): number | null => {
     if (arr.length === 0) return null;
     return Math.round(arr.reduce((s, r) => s + r.score, 0) / arr.length);
-  }
+  };
 
   // Axes d'amélioration : skillTags manqués en évaluation, comptés par fréquence.
   const skillTagCounts: Record<string, number> = {};
