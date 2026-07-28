@@ -122,7 +122,7 @@ export async function POST(req: NextRequest) {
       }),
     });
 
-    if (!aiRes.ok) {
+ if (!aiRes.ok) {
       const errorBody = await aiRes.text().catch(() => "");
       throw new Error(`Anthropic API error: ${aiRes.status} — ${errorBody}`);
     }
