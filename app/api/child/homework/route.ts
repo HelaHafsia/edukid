@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (!aiRes.ok) {
-      throw new Error(`Anthropic API error: ${aiRes.status}`);
+       const errorBody = await aiRes.text().catch(() => ""); throw new Error(`Anthropic API error: ${aiRes.status} — ${errorBody}`); 
     }
 
     const data = await aiRes.json();
