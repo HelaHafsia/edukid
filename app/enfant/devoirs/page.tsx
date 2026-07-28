@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { speak, useAutoSpeak } from "@/lib/speech";
 
 type Exercise = {
   question: string;
@@ -22,12 +23,8 @@ const SUBJECT_LABELS: Record<string, string> = {
   ANGLAIS: "Anglais",
 };
 
-function speak(text: string) {
-  if (typeof window === "undefined" || !window.speechSynthesis) return;
-  window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = "fr-FR";
-  window.speechSynthesis.speak(utterance);
+function speakIntro(subjectLabel: string) {
+  speak(`Voici des exercices pour t'entraîner sur ton devoir de ${subjectLabel}.`);
 }
 
 export default function DevoirsPage() {
@@ -36,6 +33,10 @@ export default function DevoirsPage() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<Result | null>(null);
   const [revealed, setRevealed] = useState<Record<number, boolean>>({});
+
+  // Lit automatiquement le premier exercice dès que les résultats arrivent
+  // (l'enfant n'a pas besoin de cliquer sur 🔊 pour l'entendre).
+  useAutoSpeak(result?.exercises[0]?.question ?? null, [result?.subjectCode]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -60,11 +61,7 @@ export default function DevoirsPage() {
     const data: Result = await res.json();
     setResult(data);
     setRevealed({});
-    speak(
-      `Voici des exercices pour t'entraîner sur ton devoir de ${
-        SUBJECT_LABELS[data.subjectCode] ?? data.subjectCode
-      }.`
-    );
+    speakIntro(SUBJECT_LABELS[data.subjectCode] ?? data.subjectCode);
   }
 
   return (

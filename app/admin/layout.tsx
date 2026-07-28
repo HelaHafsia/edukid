@@ -7,6 +7,7 @@ const NAV_ITEMS = [
   { href: "/admin/parents", label: "Parents" },
   { href: "/admin/enfants", label: "Enfants" },
   { href: "/admin/contenu", label: "Contenu pédagogique" },
+  { href: "/admin/manuels", label: "Manuels de référence" },
 ];
 
 export default async function AdminLayout({

@@ -299,6 +299,7 @@ model ReferenceBook {
   subject     Subject     @relation(fields: [subjectId], references: [id])
   subjectId   String
   fileUrl     String?     // PDF ou autre support importé par l'admin
+  content     String?     @db.Text // texte de l'extrait, collé par l'Admin, utilisé comme contexte pour l'IA (Devoirs)
   notes       String?     @db.Text
 
   createdAt   DateTime    @default(now())

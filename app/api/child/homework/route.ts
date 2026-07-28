@@ -71,6 +71,25 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // On récupère les manuels de référence du niveau de l'enfant (gérés par
+  // l'Admin), pour que les exercices générés s'alignent sur ce que l'enfant
+  // utilise réellement en classe plutôt que sur des connaissances génériques.
+  const referenceBooks = await prisma.referenceBook.findMany({
+    where: { level: child.level, content: { not: null } },
+    select: { title: true, content: true, subject: { select: { code: true } } },
+    take: 3, // on limite pour ne pas exploser la taille du prompt
+  });
+
+  const referenceContext =
+    referenceBooks.length > 0
+      ? `\n\nExtraits de manuels de référence disponibles pour ce niveau (utilise-les en priorité comme base pour le style et le contenu des exercices générés, quand ils sont pertinents pour la matière détectée) :\n${referenceBooks
+          .map(
+            (b) =>
+              `--- ${b.title} (${b.subject.code}) ---\n${b.content?.slice(0, 3000)}`
+          )
+          .join("\n\n")}`
+      : "";
+
   let generated: {
     subjectCode: string;
     level: string;
@@ -97,14 +116,15 @@ export async function POST(req: NextRequest) {
         messages: [
           {
             role: "user",
-            content: `Niveau de l'enfant (indicatif) : ${child.level}.\nÉnoncé du devoir : """${statement}"""`,
+            content: `Niveau de l'enfant (indicatif) : ${child.level}.\nÉnoncé du devoir : """${statement}"""${referenceContext}`,
           },
         ],
       }),
     });
 
     if (!aiRes.ok) {
-      throw new Error(`Anthropic API error: ${aiRes.status}`);
+      const errorBody = await aiRes.text().catch(() => "");
+      throw new Error(`Anthropic API error: ${aiRes.status} — ${errorBody}`);
     }
 
     const data = await aiRes.json();
