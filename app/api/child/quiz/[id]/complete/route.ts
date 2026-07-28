@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireChildSessionApi } from "@/lib/child-session";
 import { prisma } from "@/lib/prisma";
+import { checkAndAwardBadges } from "@/lib/badges";
 
 export async function POST(
   req: NextRequest,
@@ -24,5 +25,7 @@ export async function POST(
     },
   });
 
-  return NextResponse.json({ ok: true, resultId: result.id });
+  const newBadges = await checkAndAwardBadges(child.id);
+
+  return NextResponse.json({ ok: true, resultId: result.id, newBadges });
 }

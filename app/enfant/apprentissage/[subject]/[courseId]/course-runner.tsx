@@ -26,6 +26,7 @@ export function CourseRunner({ course }: { course: Course }) {
   } | null>(null);
   const [correctCount, setCorrectCount] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+  const [showHint, setShowHint] = useState(false);
 
   // Lecture automatique du cours dès l'arrivée sur la page.
   useAutoSpeak(step === "lesson" ? course.content : null, [course.id]);
@@ -73,6 +74,7 @@ export function CourseRunner({ course }: { course: Course }) {
     const wasCorrect = feedback?.isCorrect ?? false;
     setFeedback(null);
     setAnswer("");
+    setShowHint(false);
     const next = (step as number) + 1;
     if (next >= course.exercises.length) {
       await completeCourse(correctCount, course.exercises.length);
@@ -180,6 +182,26 @@ export function CourseRunner({ course }: { course: Course }) {
               >
                 Valider
               </button>
+            </div>
+          )}
+
+          {currentExercise?.hint && (
+            <div className="mt-3">
+              {!showHint ? (
+                <button
+                  onClick={() => {
+                    setShowHint(true);
+                    speak(currentExercise.hint!);
+                  }}
+                  className="text-sm text-amber-700 underline"
+                >
+                  💡 Besoin d&apos;un indice ?
+                </button>
+              ) : (
+                <p className="text-sm bg-amber-50 text-amber-900 rounded-lg px-3 py-2">
+                  💡 {currentExercise.hint}
+                </p>
+              )}
             </div>
           )}
         </>

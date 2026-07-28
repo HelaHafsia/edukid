@@ -44,9 +44,12 @@ export default function ParentHomePage() {
   return (
     <main className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
       <div className="w-full max-w-md">
-        <h1 className="text-xl font-semibold text-slate-900 mb-6 text-center">
-          Qui es-tu ?
-        </h1>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-xl font-semibold text-slate-900">Qui es-tu ?</h1>
+          <a href="/parent/bilan" className="text-sm text-slate-500 underline">
+            Voir le bilan
+          </a>
+        </div>
 
         {!selected && (
           <div className="grid grid-cols-2 gap-4">
