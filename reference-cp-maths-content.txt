@@ -1,0 +1,49 @@
+MÉTHODE CP - MATHÉMATIQUES - NOMBRES ET CALCULS (Représentation, comparaison, compléments à 10, résolution de problèmes)
+
+Ce document décrit la progression et les types d'exercices utilisés pour le CP en mathématiques, niveau début-milieu d'année, autour des nombres jusqu'à 10.
+
+1. REPRÉSENTER ET RECONNAÎTRE LES NOMBRES
+- Associer un nombre (chiffre) à sa représentation en doigts, en jetons, ou en points sur un dé.
+- Exercice type : "Colorie en vert toutes les cartes qui représentent le nombre 5" — parmi plusieurs cartes montrant des quantités différentes (jetons, doigts, constellations de points, chiffre écrit), l'enfant repère celles qui valent exactement 5.
+- Variante : proposer des cartes qui contiennent volontairement un piège (une carte à 4 ou 6 jetons parmi des cartes à 5), pour vérifier que l'enfant compte précisément et ne se fie pas à l'apparence globale.
+
+2. COMPLÉTER UNE QUANTITÉ (JETONS MANQUANTS OU EN TROP)
+- "Dessine les jetons qui manquent" : une case affiche un nombre cible (ex: 4) et quelques jetons déjà dessinés (ex: 2) ; l'enfant doit ajouter les jetons manquants pour atteindre le nombre cible.
+- "Barre les jetons en trop" : une case affiche un nombre cible (ex: 3) et trop de jetons (ex: 5) ; l'enfant doit barrer les jetons en trop pour qu'il n'en reste que le bon nombre.
+- Prévoir plusieurs cases avec des nombres cibles variés (entre 0 et 10) et des écarts variés (parfois juste 1 jeton d'écart, parfois plusieurs).
+
+3. COMPLÉTER UNE BANDE NUMÉRIQUE (SUITE DE NOMBRES)
+- Présenter une suite de nombres avec une ou plusieurs cases vides à compléter, par exemple : 1, 2, 3, _, 5 (l'enfant doit trouver 4).
+- Variantes : suite croissante simple, suite avec un "trou" au milieu, suite avec deux trous à la suite.
+
+4. COMPTER ET ÉCRIRE UN NOMBRE
+- Montrer une image (ex: des fleurs dans des pots, des animaux, des ballons) et demander à l'enfant de compter puis d'écrire le nombre correspondant dans une case.
+- Varier les objets comptés et leur disposition (alignés, en groupes, dispersés) pour travailler le dénombrement dans différents contextes visuels.
+
+5. CALCULS SIMPLES (ADDITIONS)
+- Petites additions avec le résultat à trouver, présentées sous forme horizontale, ex : 7 + 1 = ...
+- Utiliser des nombres dont la somme reste dans les nombres connus de l'enfant (généralement jusqu'à 10 pour un début de CP).
+- Possibilité d'accompagner l'addition d'un support visuel (jetons ou dessins) pour les enfants qui ont encore besoin de représenter le calcul.
+
+6. RANGER DES NOMBRES
+- Donner une série de nombres dans le désordre (ex: 6, 2, 9, 4) et demander de les ranger du plus petit au plus grand (ou l'inverse).
+- Variante : ranger des quantités représentées visuellement plutôt que des chiffres écrits, pour vérifier la compréhension au-delà de la simple lecture du chiffre.
+
+7. RÉSOLUTION DE PROBLÈMES MATHÉMATIQUES
+Méthode en 3 étapes, à toujours expliciter à l'enfant :
+  a) Je lis et je comprends la situation : de quoi parle le problème ?
+  b) Je cherche : qu'est-ce que je dois trouver exactement ? (reformuler la question sous forme d'une phrase simple, ex : "Je dois chercher le nombre total de fleurs dans le bouquet de Léa")
+  c) Je résous : je peux m'aider d'un dessin ou d'un schéma représentant la situation, puis je calcule et j'écris ma réponse par une phrase complète.
+
+Exemple type de problème (niveau CP, calcul dans les nombres jusqu'à 10) :
+"Léa fait un bouquet avec 5 tulipes et 4 pivoines. Combien de fleurs contient son bouquet ?"
+- Étape "je cherche" attendue : "Je dois chercher le nombre total de fleurs du bouquet de Léa."
+- Support visuel à fournir à l'enfant : un dessin simple montrant 5 fleurs d'un type (tulipes, dessinées comme des fleurs simples à 5 pétales) d'un côté et 4 fleurs d'un autre type (pivoines, dessinées comme des fleurs rondes) de l'autre côté, réunies dans un même bouquet/vase, pour que l'enfant puisse compter ou s'appuyer sur le dessin s'il en a besoin.
+- Réponse attendue : addition simple (5 + 4 = 9), puis phrase réponse : "Le bouquet de Léa contient 9 fleurs."
+
+Autres exemples de problèmes similaires à générer sur ce modèle (contextes du quotidien d'un enfant : jouets, fruits, animaux, bonbons, gommettes), toujours avec les 3 étapes explicites (je comprends / je cherche / je résous avec un support visuel).
+
+TON ET STYLE GÉNÉRAL
+- Consignes courtes, à l'impératif, formulées simplement ("Colorie...", "Dessine...", "Compte et écris...", "Range...").
+- Toujours accompagner les exercices de dénombrement ou de calcul d'une possibilité de représentation visuelle (jetons, dessins simples) pour les enfants qui en ont besoin.
+- Bienveillance : jamais de formulation qui dévalorise, toujours orienté "entraînement" plutôt que "contrôle".

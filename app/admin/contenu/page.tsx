@@ -88,10 +88,45 @@ function CoursForm({ subjects }: { subjects: Subject[] }) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [topic, setTopic] = useState("");
+  const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
     if (subjects.length > 0 && !subjectId) setSubjectId(subjects[0].id);
   }, [subjects]);
+
+  async function handleGenerate() {
+    if (!topic.trim() || !subjectId) return;
+    setError(null);
+    setGenerating(true);
+
+    const subjectCode = subjects.find((s) => s.id === subjectId)?.code;
+    const res = await fetch("/api/admin/generate-content", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "cours", subjectCode, level, topic }),
+    });
+    setGenerating(false);
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setError(data.error ?? "Erreur de génération.");
+      return;
+    }
+
+    const data = await res.json();
+    setTitle(data.title ?? "");
+    setContent(data.content ?? "");
+    setExercises(
+      (data.exercises ?? []).map((ex: any) => ({
+        question: ex.question ?? "",
+        choicesRaw: Array.isArray(ex.choices) ? ex.choices.join(" | ") : "",
+        answer: ex.answer ?? "",
+        hint: ex.hint ?? "",
+        explanation: ex.explanation ?? "",
+      }))
+    );
+  }
 
   function updateExercise(i: number, patch: Partial<DraftExercise>) {
     setExercises((exs) => exs.map((e, idx) => (idx === i ? { ...e, ...patch } : e)));
@@ -139,6 +174,32 @@ function CoursForm({ subjects }: { subjects: Subject[] }) {
 
   return (
     <form onSubmit={handleSubmit} className="max-w-2xl flex flex-col gap-4">
+      <div className="bg-violet-50 border border-violet-200 rounded-xl p-4">
+        <label className="block text-sm font-medium text-violet-900 mb-1">
+          ✨ Générer avec l&apos;IA — thème du cours
+        </label>
+        <div className="flex gap-2">
+          <input
+            value={topic}
+            onChange={(e) => setTopic(e.target.value)}
+            placeholder="Ex : Compter jusqu'à 10, les lettres de l'alphabet..."
+            className="flex-1 rounded-lg border border-violet-300 px-3 py-2 text-sm bg-white"
+          />
+          <button
+            type="button"
+            onClick={handleGenerate}
+            disabled={generating || !topic.trim() || !subjectId}
+            className="bg-violet-600 text-white rounded-lg px-4 py-2 text-sm disabled:opacity-50 shrink-0"
+          >
+            {generating ? "Génération..." : "Générer"}
+          </button>
+        </div>
+        <p className="text-xs text-violet-700 mt-1">
+          Choisis d&apos;abord le niveau et la matière ci-dessous, puis décris le
+          thème. Tu pourras relire et modifier avant d&apos;enregistrer.
+        </p>
+      </div>
+
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">
           Titre du cours
@@ -275,10 +336,43 @@ function QuizForm({ subjects }: { subjects: Subject[] }) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [topic, setTopic] = useState("");
+  const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
     if (subjects.length > 0 && !subjectId) setSubjectId(subjects[0].id);
   }, [subjects]);
+
+  async function handleGenerate() {
+    if (!topic.trim() || !subjectId) return;
+    setError(null);
+    setGenerating(true);
+
+    const subjectCode = subjects.find((s) => s.id === subjectId)?.code;
+    const res = await fetch("/api/admin/generate-content", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "quiz", subjectCode, level, topic }),
+    });
+    setGenerating(false);
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setError(data.error ?? "Erreur de génération.");
+      return;
+    }
+
+    const data = await res.json();
+    setTitle(data.title ?? "");
+    setQuestions(
+      (data.questions ?? []).map((q: any) => ({
+        question: q.question ?? "",
+        choicesRaw: Array.isArray(q.choices) ? q.choices.join(" | ") : "",
+        answer: q.answer ?? "",
+        hint: q.hint ?? "",
+      }))
+    );
+  }
 
   function updateQuestion(i: number, patch: Partial<DraftQuizQuestion>) {
     setQuestions((qs) => qs.map((q, idx) => (idx === i ? { ...q, ...patch } : q)));
@@ -323,6 +417,28 @@ function QuizForm({ subjects }: { subjects: Subject[] }) {
 
   return (
     <form onSubmit={handleSubmit} className="max-w-2xl flex flex-col gap-4">
+      <div className="bg-violet-50 border border-violet-200 rounded-xl p-4">
+        <label className="block text-sm font-medium text-violet-900 mb-1">
+          ✨ Générer avec l&apos;IA — thème du quiz
+        </label>
+        <div className="flex gap-2">
+          <input
+            value={topic}
+            onChange={(e) => setTopic(e.target.value)}
+            placeholder="Ex : Les additions jusqu'à 10"
+            className="flex-1 rounded-lg border border-violet-300 px-3 py-2 text-sm bg-white"
+          />
+          <button
+            type="button"
+            onClick={handleGenerate}
+            disabled={generating || !topic.trim() || !subjectId}
+            className="bg-violet-600 text-white rounded-lg px-4 py-2 text-sm disabled:opacity-50 shrink-0"
+          >
+            {generating ? "Génération..." : "Générer"}
+          </button>
+        </div>
+      </div>
+
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">
           Titre du quiz
@@ -438,10 +554,44 @@ function EvaluationForm({ subjects }: { subjects: Subject[] }) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [topic, setTopic] = useState("");
+  const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
     if (subjects.length > 0 && !subjectId) setSubjectId(subjects[0].id);
   }, [subjects]);
+
+  async function handleGenerate() {
+    if (!topic.trim() || !subjectId) return;
+    setError(null);
+    setGenerating(true);
+
+    const subjectCode = subjects.find((s) => s.id === subjectId)?.code;
+    const res = await fetch("/api/admin/generate-content", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type: "evaluation", subjectCode, level, topic }),
+    });
+    setGenerating(false);
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setError(data.error ?? "Erreur de génération.");
+      return;
+    }
+
+    const data = await res.json();
+    setTitle(data.title ?? "");
+    setQuestions(
+      (data.questions ?? []).map((q: any) => ({
+        question: q.question ?? "",
+        choicesRaw: Array.isArray(q.choices) ? q.choices.join(" | ") : "",
+        answer: q.answer ?? "",
+        hint: q.hint ?? "",
+        skillTag: q.skillTag ?? "",
+      }))
+    );
+  }
 
   function updateQuestion(i: number, patch: Partial<DraftEvalQuestion>) {
     setQuestions((qs) => qs.map((q, idx) => (idx === i ? { ...q, ...patch } : q)));
@@ -487,6 +637,28 @@ function EvaluationForm({ subjects }: { subjects: Subject[] }) {
 
   return (
     <form onSubmit={handleSubmit} className="max-w-2xl flex flex-col gap-4">
+      <div className="bg-violet-50 border border-violet-200 rounded-xl p-4">
+        <label className="block text-sm font-medium text-violet-900 mb-1">
+          ✨ Générer avec l&apos;IA — thème de l&apos;évaluation
+        </label>
+        <div className="flex gap-2">
+          <input
+            value={topic}
+            onChange={(e) => setTopic(e.target.value)}
+            placeholder="Ex : Bilan sur les additions et soustractions simples"
+            className="flex-1 rounded-lg border border-violet-300 px-3 py-2 text-sm bg-white"
+          />
+          <button
+            type="button"
+            onClick={handleGenerate}
+            disabled={generating || !topic.trim() || !subjectId}
+            className="bg-violet-600 text-white rounded-lg px-4 py-2 text-sm disabled:opacity-50 shrink-0"
+          >
+            {generating ? "Génération..." : "Générer"}
+          </button>
+        </div>
+      </div>
+
       <div>
         <label className="block text-sm font-medium text-slate-700 mb-1">
           Titre de l&apos;évaluation
